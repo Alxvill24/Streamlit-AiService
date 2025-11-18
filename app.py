@@ -72,7 +72,7 @@ body { background-color: #ffffff; }
     right: 0;
     padding: 16px 20px;
     background: #faf5ff;
-    border-top: 3px solid #5b2e91;
+    border-top: 3px solid #d3bee8;
     z-index: 9999;
     box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
 }
@@ -139,7 +139,7 @@ def send_message():
 # ----------------------------------
 # HEADER
 # ----------------------------------
-st.markdown("<div class='title'>Gemini WebApp</div>", unsafe_allow_html=True)
+st.markdown("<div class='title'>Jackklo Custom AI Chat</div>", unsafe_allow_html=True)
 
 
 # ----------------------------------
