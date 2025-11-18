@@ -31,7 +31,7 @@ div.stButton > button:hover {
     background-color: #357ABD;
 }
 .output-box {
-    background: white;
+    background: black;
     padding: 15px;
     border-radius: 12px;
     border: 1px solid #ddd;
