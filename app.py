@@ -91,7 +91,7 @@ textarea {
 
 /* Button */
 .send-btn button {
-    background-color: #5b2e91 !important;
+    background-color: #8e76ab !important;
     color: white !important;
     border-radius: 8px !important;
     border: 2px solid #ffda55 !important;
