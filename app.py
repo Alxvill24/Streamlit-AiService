@@ -82,7 +82,7 @@ textarea {
     border: 2px solid #5b2e91 !important;
     padding: 10px !important;
     font-size: 15px !important;
-    color: #222 !important;
+    color: #fff !important;
     background: #8e76ab !important;
     width: 100% !important;
     min-height: 80px !important;
