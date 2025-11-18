@@ -18,37 +18,7 @@ st.markdown("""
             color: #5b2e91;
             font-size: 32px;
             font-weight: 700;
-            margin-bottom: 25px;
-        }
-
-        /* Contenedor del input */
-        .input-wrapper {
-            background-color: #faf5ff;
-            border: 2px solid #5b2e91;
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 25px;
-        }
-
-        /* Textarea */
-        textarea {
-            background-color: #ffffff !important;
-            border-radius: 10px !important;
-            border: 2px solid #5b2e91 !important;
-            color: #222 !important;
-            font-size: 16px !important;
-        }
-
-        /* Botón */
-        .send-btn button {
-            background-color: #5b2e91 !important;
-            color: white !important;
-            border-radius: 8px !important;
-            border: 2px solid #ffda55 !important;
-            padding: 6px 12px !important;
-        }
-        .send-btn button:hover {
-            background-color: #43206d !important;
+            margin-bottom: 20px;
         }
 
         /* Bloque estilo GPT — usuario */
@@ -75,36 +45,108 @@ st.markdown("""
             color: #222;
         }
 
+        /* Caja input flotante abajo */
+        .input-floating {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background-color: #faf5ff;
+            border-top: 3px solid #5b2e91;
+            z-index: 10000;
+        }
+
+        textarea {
+            background-color: #ffffff !important;
+            border-radius: 10px !important;
+            border: 2px solid #5b2e91 !important;
+            color: #222 !important;
+            font-size: 16px !important;
+        }
+
+        .send-btn button {
+            background-color: #5b2e91 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            border: 2px solid #ffda55 !important;
+            padding: 6px 12px !important;
+            margin-top: 8px;
+        }
+
     </style>
 """, unsafe_allow_html=True)
 
-# Título
+
+# ----- TITULO -----
 st.markdown("<h1 class='title'>Gemini WebApp</h1>", unsafe_allow_html=True)
 
-# -------- INPUT SIEMPRE ARRIBA --------
-st.markdown("<div class='input-wrapper'>", unsafe_allow_html=True)
 
-prompt = st.text_area("Escribe tu prompt:", label_visibility="collapsed")
-
-col1, col2 = st.columns([7,1])
-with col2:
-    send = st.button("Enviar", key="send_btn")
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-# -------- HISTORIAL --------
+# ----- HISTORIAL -----
 if "history" not in st.session_state:
     st.session_state.history = []
 
+for msg in st.session_state.history:
+    if msg["role"] == "user":
+        st.markdown(f"<div class='user-block'>{msg['text']}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='ai-block'>{msg['text']}</div>", unsafe_allow_html=True)
+
+
+# ----- INPUT ABAJO SIEMPRE -----
+st.markdown("<div class='input-floating'>", unsafe_allow_html=True)
+
+# Guardamos un estado temporal del input
+if "current_input" not in st.session_state:
+    st.session_state.current_input = ""
+
+prompt = st.text_area(
+    "Escribe tu prompt:",
+    value=st.session_state.current_input,
+    key="prompt_text",
+    label_visibility="collapsed"
+)
+
+send = st.button("Enviar", key="send_btn")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ----- LÓGICA -----
 if send and prompt.strip():
     st.session_state.history.append({"role": "user", "text": prompt})
 
     result = model.generate_content(prompt)
     st.session_state.history.append({"role": "ai", "text": result.text})
 
-# -------- MOSTRAR BLOQUES --------
-for msg in st.session_state.history:
-    if msg["role"] == "user":
-        st.markdown(f"<div class='user-block'>{msg['text']}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div class='ai-block'>{msg['text']}</div>", unsafe_allow_html=True)
+    # Limpiar input
+    st.session_state.current_input = ""
+    st.session_state.prompt_text = ""
+
+    st.rerun()
+
+
+# ----- JS PARA ENTER Y CTRL+ENTER -----
+st.markdown("""
+<script>
+document.addEventListener("keydown", function(e) {
+    const textarea = document.querySelector("textarea");
+    if (!textarea) return;
+
+    // Ctrl+Enter => salto de línea
+    if (e.key === "Enter" && e.ctrlKey) {
+        e.preventDefault();
+        textarea.value += "\\n";
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        return;
+    }
+
+    // Enter => enviar
+    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        const sendBtn = window.parent.document.querySelector('button[kind="primary"]');
+        if (sendBtn) sendBtn.click();
+    }
+});
+</script>
+""", unsafe_allow_html=True)
