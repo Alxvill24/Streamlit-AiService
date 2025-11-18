@@ -8,7 +8,7 @@ st.set_page_config(page_title="Chat con Gemini", page_icon="✨", layout="center
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # Modelo a usar
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # --- CSS Personalizado ---
 st.markdown("""
