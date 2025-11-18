@@ -93,10 +93,10 @@ for msg in st.session_state.history:
         st.markdown(f"<div class='ai-block'>{msg['text']}</div>", unsafe_allow_html=True)
 
 
-# ----- INPUT ABAJO SIEMPRE -----
+# ----- INPUT ABAJO -----
 st.markdown("<div class='input-floating'>", unsafe_allow_html=True)
 
-# Guardamos un estado temporal del input
+# Estado temporal del input
 if "current_input" not in st.session_state:
     st.session_state.current_input = ""
 
@@ -119,10 +119,9 @@ if send and prompt.strip():
     result = model.generate_content(prompt)
     st.session_state.history.append({"role": "ai", "text": result.text})
 
-    # Limpiar input
+    # LIMPIEZA CORRECTA (FIX)
     st.session_state.current_input = ""
-    st.session_state.prompt_text = ""
-
+    st.session_state["prompt_text"] = ""   # <-- CORREGIDO
     st.rerun()
 
 
@@ -133,7 +132,7 @@ document.addEventListener("keydown", function(e) {
     const textarea = document.querySelector("textarea");
     if (!textarea) return;
 
-    // Ctrl+Enter => salto de línea
+    // Ctrl+Enter: salto de línea
     if (e.key === "Enter" && e.ctrlKey) {
         e.preventDefault();
         textarea.value += "\\n";
@@ -141,7 +140,7 @@ document.addEventListener("keydown", function(e) {
         return;
     }
 
-    // Enter => enviar
+    // Enter: enviar
     if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
         e.preventDefault();
         const sendBtn = window.parent.document.querySelector('button[kind="primary"]');
