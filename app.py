@@ -43,16 +43,19 @@ body { background-color: #ffffff; }
     margin-bottom: 14px;
     font-size: 16px;
     line-height: 1.6;
+    color: #000 !important;
 }
 
 .user-block {
     background: rgba(250,245,255,0.8);
     border-left: 6px solid #ffda55;
+    color: #000 !important;
 }
 
 .ai-block {
     background: rgba(235,225,250,0.9);
     border-left: 6px solid #5b2e91;
+    color: #000 !important;
 }
 
 /* Space so messages aren't hidden behind bottom bar */
