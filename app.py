@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 # ----------------------------------
 # CONFIG
 # ----------------------------------
-st.set_page_config(page_title="Gemini WebApp", layout="wide")
+st.set_page_config(page_title="Gemini Jackklo Custom Chat", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 MODEL_NAME = "gemini-2.5-flash"
@@ -34,6 +34,7 @@ body { background-color: #ffffff; }
     font-size: 30px;
     font-weight: 700;
     margin-bottom: 20px;
+    
 }
 
 /* Message blocks */
@@ -82,7 +83,7 @@ textarea {
     padding: 10px !important;
     font-size: 15px !important;
     color: #222 !important;
-    background: #ffffff !important;
+    background: #8e76ab !important;
     width: 100% !important;
     min-height: 80px !important;
     resize: vertical;
