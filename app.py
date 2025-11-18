@@ -1,15 +1,19 @@
 import streamlit as st
 import google.generativeai as genai
 
-# CONFIGURAR API
+# Configurar Gemini API
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# ESTILOS
+# ----- ESTILOS -----
 st.markdown("""
     <style>
-        body { background-color: #ffffff; }
 
+        body {
+            background-color: #ffffff;
+        }
+
+        /* Título */
         .title {
             color: #5b2e91;
             font-size: 32px;
@@ -17,66 +21,68 @@ st.markdown("""
             margin-bottom: 25px;
         }
 
-        /* CONTENEDOR INPUT ARRIBA */
-        .input-block {
-            padding: 20px;
-            background-color: #faf7ff;
+        /* Contenedor del input */
+        .input-wrapper {
+            background-color: #faf5ff;
             border: 2px solid #5b2e91;
             border-radius: 14px;
+            padding: 18px;
             margin-bottom: 25px;
         }
 
-        /* textarea */
+        /* Textarea */
         textarea {
-            border-radius: 8px !important;
-            border: 2px solid #5b2e91 !important;
             background-color: #ffffff !important;
-            color: #2e2e2e !important;
+            border-radius: 10px !important;
+            border: 2px solid #5b2e91 !important;
+            color: #222 !important;
+            font-size: 16px !important;
         }
 
-        /* botón */
+        /* Botón */
         .send-btn button {
             background-color: #5b2e91 !important;
             color: white !important;
             border-radius: 8px !important;
-            padding: 6px 12px !important;
             border: 2px solid #ffda55 !important;
-            margin-top: 8px;
+            padding: 6px 12px !important;
         }
-
         .send-btn button:hover {
             background-color: #43206d !important;
         }
 
-        /* BLOQUES DE RESPUESTA TIPO GPT */
-        .response-block {
-            background-color: #f3eaff;
-            border-left: 6px solid #5b2e91;
-            padding: 24px;
-            margin-bottom: 18px;
+        /* Bloque estilo GPT — usuario */
+        .user-block {
+            background-color: rgba(250, 245, 255, 0.7);
+            border-left: 6px solid #ffda55;
+            padding: 20px;
             border-radius: 10px;
+            margin-bottom: 18px;
             font-size: 17px;
             line-height: 1.6;
-            color: #2e2e2e;
+            color: #222;
         }
 
-        .user-block {
-            background-color: #fff;
-            border-left: 6px solid #ffda55;
-            padding: 24px;
-            margin-bottom: 18px;
+        /* Bloque estilo GPT — modelo */
+        .ai-block {
+            background-color: rgba(243, 234, 255, 0.85);
+            border-left: 6px solid #5b2e91;
+            padding: 20px;
             border-radius: 10px;
+            margin-bottom: 18px;
             font-size: 17px;
-            color: #2e2e2e;
+            line-height: 1.6;
+            color: #222;
         }
+
     </style>
 """, unsafe_allow_html=True)
 
-# TÍTULO
+# Título
 st.markdown("<h1 class='title'>Gemini WebApp</h1>", unsafe_allow_html=True)
 
-# -------- ENTRADA ARRIBA --------
-st.markdown("<div class='input-block'>", unsafe_allow_html=True)
+# -------- INPUT SIEMPRE ARRIBA --------
+st.markdown("<div class='input-wrapper'>", unsafe_allow_html=True)
 
 prompt = st.text_area("Escribe tu prompt:", label_visibility="collapsed")
 
@@ -86,33 +92,19 @@ with col2:
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-# -------- HISTORIAL DE BLOQUES --------
+# -------- HISTORIAL --------
 if "history" not in st.session_state:
     st.session_state.history = []
 
 if send and prompt.strip():
-    # Guardar el bloque del usuario
-    st.session_state.history.append({
-        "role": "user",
-        "text": prompt
-    })
+    st.session_state.history.append({"role": "user", "text": prompt})
 
-    # Obtener respuesta
-    res = model.generate_content(prompt)
-    st.session_state.history.append({
-        "role": "ai",
-        "text": res.text
-    })
+    result = model.generate_content(prompt)
+    st.session_state.history.append({"role": "ai", "text": result.text})
 
-# Mostrar como bloques tipo GPT
+# -------- MOSTRAR BLOQUES --------
 for msg in st.session_state.history:
     if msg["role"] == "user":
-        st.markdown(
-            f"<div class='user-block'>{msg['text']}</div>",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"<div class='user-block'>{msg['text']}</div>", unsafe_allow_html=True)
     else:
-        st.markdown(
-            f"<div class='response-block'>{msg['text']}</div>",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"<div class='ai-block'>{msg['text']}</div>", unsafe_allow_html=True)
