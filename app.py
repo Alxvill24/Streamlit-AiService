@@ -44,7 +44,7 @@ body { background-color: #ffffff; }
     margin-bottom: 14px;
     font-size: 16px;
     line-height: 1.6;
-    color: #000 !important;
+    color: #FFF !important;
 }
 
 .user-block {
