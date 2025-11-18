@@ -1,229 +1,81 @@
 import streamlit as st
-import google.generativeai as genai
-from datetime import datetime
-import streamlit.components.v1 as components
+from streamlit.components.v1 import html
 
-# ----------------------------------
-# CONFIG
-# ----------------------------------
-st.set_page_config(page_title="Gemini WebApp", layout="wide")
+st.set_page_config(page_title="GPT Style Chat", layout="centered")
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-MODEL_NAME = "gemini-2.5-flash"
+# Global CSS for black font
+st.markdown(
+    """
+    <style>
+        * { color: black !important; }
+        textarea, input, .stMarkdown, .stChatMessage, .stTextInput { color: black !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# ----------------------------------
-# SESSION STATE
-# ----------------------------------
+# Initialize chat history
 if "history" not in st.session_state:
-    st.session_state.history = []  # Chats
+    st.session_state.history = []
 
-if "user_input" not in st.session_state:
-    st.session_state.user_input = ""
+if "user_input_js" not in st.session_state:
+    st.session_state.user_input_js = ""
 
+# Title
+st.markdown("<h2 style='color:black'>Chat estilo GPT</h2>", unsafe_allow_html=True)
 
-# ----------------------------------
-# STYLES
-# ----------------------------------
-st.markdown("""
-<style>
-body { background-color: #ffffff; }
+# Inject JavaScript for Enter (send) / Shift+Enter (newline)
+html(
+    """
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = window.parent.document.querySelector('textarea[data-testid="stTextArea"]');
+        if (!textarea) return;
 
-/* Title */
-.title {
-    color: #5b2e91;
-    font-size: 30px;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
+        textarea.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const text = textarea.value;
+                textarea.value = "";
 
-/* Message blocks */
-.block {
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 14px;
-    font-size: 16px;
-    line-height: 1.6;
-}
+                window.parent.postMessage({
+                    isStreamlitMessage: true,
+                    type: "SET_COMPONENT_VALUE",
+                    key: "user_input_js",
+                    value: text
+                }, "*");
+            }
+        });
+    });
+    </script>
+    """,
+    height=0,
+)
 
-.user-block {
-    background: rgba(250,245,255,0.8);
-    border-left: 6px solid #ffda55;
-}
+# Display chat history
+for msg in st.session_state.history:
+    if msg["role"] == "user":
+        st.markdown(f"<div style='background:#e6e6e6;border-radius:10px;padding:10px;margin:5px 0;color:black'><b>Tú:</b> {msg['text']}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div style='background:#dcdcdc;border-radius:10px;padding:10px;margin:5px 0;color:black'><b>AI:</b> {msg['text']}</div>", unsafe_allow_html=True)
 
-.ai-block {
-    background: rgba(235,225,250,0.9);
-    border-left: 6px solid #5b2e91;
-}
+# Text input area
+user_text = st.text_area(
+    "Mensaje:",
+    key="user_input",
+    placeholder="Escribe algo... (Enter para enviar / Shift+Enter para salto de línea)",
+    height=100,
+)
 
-/* Space so messages aren't hidden behind bottom bar */
-.messages-padding {
-    padding-bottom: 150px;
-}
+# If JS sent text
+if st.session_state.user_input_js:
+    text = st.session_state.user_input_js
+    st.session_state.user_input_js = ""
 
-/* Bottom input bar */
-.input-floating {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 16px 20px;
-    background: #faf5ff;
-    border-top: 3px solid #5b2e91;
-    z-index: 9999;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
-}
+    st.session_state.history.append({"role": "user", "text": text})
 
-textarea {
-    border-radius: 10px !important;
-    border: 2px solid #5b2e91 !important;
-    padding: 10px !important;
-    font-size: 15px !important;
-    color: #222 !important;
-    background: #ffffff !important;
-    width: 100% !important;
-    min-height: 80px !important;
-    resize: vertical;
-}
+    # Placeholder AI response
+    ai_response = f"Procesé tu mensaje: {text}"
+    st.session_state.history.append({"role": "ai", "text": ai_response})
 
-/* Button */
-.send-btn button {
-    background-color: #5b2e91 !important;
-    color: white !important;
-    border-radius: 8px !important;
-    border: 2px solid #ffda55 !important;
-    padding: 8px 14px !important;
-    font-size: 14px !important;
-}
-.send-btn button:hover {
-    background-color: #43206d !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# ----------------------------------
-# GEMINI CALL
-# ----------------------------------
-def call_gemini(prompt):
-    try:
-        model = genai.GenerativeModel(MODEL_NAME)
-        response = model.generate_content(prompt)
-        if hasattr(response, "text"):
-            return response.text
-        return str(response)
-    except Exception as e:
-        return f"Error en la generación: {e}"
-
-
-# ----------------------------------
-# CALLBACK: send message
-# ----------------------------------
-def send_message():
-    txt = st.session_state.user_input.strip()
-    if not txt:
-        return
-
-    st.session_state.history.append({"role": "user", "text": txt})
-
-    out = call_gemini(txt)
-    st.session_state.history.append({"role": "ai", "text": out})
-
-    # Clean BEFORE widget rendering
-    st.session_state.user_input = ""
-
-
-# ----------------------------------
-# HEADER
-# ----------------------------------
-st.markdown("<div class='title'>Gemini WebApp</div>", unsafe_allow_html=True)
-
-
-# ----------------------------------
-# CHAT HISTORY
-# ----------------------------------
-container = st.container()
-with container:
-    st.markdown("<div class='messages-padding'></div>", unsafe_allow_html=True)
-
-    for msg in st.session_state.history:
-        if msg["role"] == "user":
-            st.markdown(
-                f"<div class='block user-block'>{msg['text']}</div>",
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                f"<div class='block ai-block'>{msg['text']}</div>",
-                unsafe_allow_html=True
-            )
-
-
-# ----------------------------------
-# FLOATING INPUT BAR
-# ----------------------------------
-st.markdown("<div class='input-floating'>", unsafe_allow_html=True)
-
-col1, col2 = st.columns([10, 1])
-
-with col1:
-    st.text_area(
-        "",
-        key="user_input",
-        label_visibility="collapsed",
-        placeholder="Escribe tu prompt...",
-    )
-
-with col2:
-    st.button("Enviar", key="send_primary", on_click=send_message, help="Enviar mensaje")
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ----------------------------------
-# JS: Enter = enviar, Shift+Enter = nueva línea
-# ----------------------------------
-components.html("""
-<script>
-(function() {
-  if (window._enterFixApplied) return;
-  window._enterFixApplied = true;
-
-  function attach() {
-    const ta = document.querySelector("textarea");
-    if (!ta) return false;
-
-    let sendBtn = document.querySelector('button[kind="primary"]');
-    if (!sendBtn) {
-      const btns = [...document.querySelectorAll("button")];
-      sendBtn = btns.find(b => b.innerText.trim().toLowerCase() === "enviar");
-    }
-
-    if (!sendBtn) return false;
-
-    if (!ta._listenerAttached) {
-      ta._listenerAttached = true;
-
-      ta.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" && e.shiftKey) {
-          return; // allow newline
-        }
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendBtn.click();
-        }
-      });
-    }
-
-    return true;
-  }
-
-  let tries = 0;
-  const interval = setInterval(() => {
-    tries += 1;
-    if (attach() || tries > 40) {
-      clearInterval(interval);
-    }
-  }, 100);
-})();
-</script>
-""", height=0)
+    st.experimental_rerun()
